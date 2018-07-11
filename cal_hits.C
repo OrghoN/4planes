@@ -33,7 +33,7 @@ Double_t cal_yuv(Double_t u, Double_t v, Int_t n){
 void cal_hits(){
 // int
 // main (Int_t argc, char *argv[]){
-  const Int_t nplane = 6;
+  const Int_t nplane = 3;
   
   TFile *file = new TFile(Form("plane_%d.root",nplane),"RECREATE");
   TTree *T = new TTree("T","T");
@@ -41,6 +41,8 @@ void cal_hits(){
   T->Branch("nhit",&nhit,"nhit/I");
   Int_t nphit;
   T->Branch("nphit",&nphit,"nphit/I");
+  Int_t nwires;
+  T->Branch("nwires",&nwires,"nwires/I");
   
   for (Int_t temp = 0; temp!=100000;temp++){
     if (temp%10000==0) std::cout << temp << std::endl;
@@ -112,6 +114,12 @@ void cal_hits(){
   }
   //std::cout << potential_hits.size() << " " << bad_hits.size() <<std::endl;
   nphit = potential_hits.size()-bad_hits.size();
+  
+  nwires = 0;
+  for (Int_t i=0; i!= nplane ;i++){
+    nwires += fired_wires.at(i).size();
+  }
+
   T->Fill();
 }
   file->Write();
