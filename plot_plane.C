@@ -70,7 +70,7 @@ void plot_plane(){
   h1_2->Draw("same");
   h1_2->SetLineColor(12);
 
-  Double_t p = 0.9;
+  Double_t p = 0.95;
   Double_t e3 = p*p*p+3*p*p*(1-p);
   Double_t e4 = p*p*p*p+4*p*p*p*(1-p);
   Double_t e5 = p*p*p*p*p+5*p*p*p*p*(1-p);
@@ -81,10 +81,10 @@ void plot_plane(){
   TH1F *h5_3 = (TH1F*)h3_2->Clone("h5_3");
   TH1F *h6_3 = (TH1F*)h3_2->Clone("h6_3");
   
-  h3_3->Add(h2_2,h3_2,e3*(1-p),e3*p);
-  h4_3->Add(h3_2,h4_2,e4*(1-p),e4*p);
-  h5_3->Add(h4_2,h5_2,e5*(1-p),e5*p);
-  h6_3->Add(h5_2,h6_2,e6*(1-p),e6*p);
+  h3_3->Add(h2_2,h3_2,e3*(1-p)*3,e3*(1-(1-p)*3));
+  h4_3->Add(h3_2,h4_2,e4*(1-p)*4,e4*(1-(1-p)*4));
+  h5_3->Add(h4_2,h5_2,e5*(1-p)*5,e5*(1-(1-p)*5));
+  h6_3->Add(h5_2,h6_2,e6*(1-p)*6,e6*(1-(1-p)*6));
   
   h3_3->SetLineColor(2);
   h4_3->SetLineColor(4);
@@ -99,6 +99,9 @@ void plot_plane(){
   h4_3->SetLineStyle(2);
   h5_3->SetLineStyle(2);
   h6_3->SetLineStyle(2);
+
+  h2_2->GetYaxis()->SetRangeUser(0,150);
+
 
   TLegend *le1 = new TLegend(0.6,0.6,0.89,0.89);
   le1->SetFillColor(10);
