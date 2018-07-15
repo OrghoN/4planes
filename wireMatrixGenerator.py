@@ -82,33 +82,38 @@ def make2PlaneGrid():
 
 # grid = make3PlaneGrid()
 grid = make2PlaneGrid()
-cells = []
 
-# l1 = grid[0][0].leftBound
-# l2 = grid[1][0].leftBound
+def makeMatrixFromGeometry(grid):
+    cells = []
+
+    potentialCells = list(itertools.product(*grid))
+    for potentialCell in potentialCells:
+        goodCell = True
+        potentialIntersections = list(itertools.combinations(potentialCell,2))
+        for intersection in potentialIntersections:
+            if not intersection[0].doesIntersect(intersection[1]):
+                goodCell = False
+                break
+        if goodCell:
+            cell = []
+            for wire in potentialCell:
+                cell.append(wire.trueWireNo)
+            cells.append(cell)
+
+    # print(cells)
+
+    matrix = np.zeros((grid[-1][-1].trueWireNo+1,len(cells)), dtype = int)
+    for cellNo, cell in enumerate(cells):
+        for wire in cell:
+            matrix[wire][cellNo] = 1
+
+    return matrix
+
+makeMatrixFromGeometry(grid)
 #
-# print(l1.intersection(l2))
-# print(grid[0][0].doesIntersect(grid[1][0]))
-
-potentialCells = list(itertools.product(*grid))
-for potentialCell in potentialCells:
-    goodCell = True
-    potentialIntersections = list(itertools.combinations(potentialCell,2))
-    for intersection in potentialIntersections:
-        if not intersection[0].doesIntersect(intersection[1]):
-            goodCell = False
-            break
-    if goodCell:
-        cell = []
-        for wire in potentialCell:
-            cell.append(wire.trueWireNo)
-        cells.append(cell)
-
-print(cells)
-
-matrix = np.zeros((grid[-1][-1].trueWireNo+1,len(cells)), dtype = int)
-for cellNo, cell in enumerate(cells):
-    for wire in cell:
-        matrix[wire][cellNo] = 1
-
-print(matrix)
+# p1 = Point(-5,0)
+# p2 = Point(5,0)
+# p3 = Point(-5,-5)
+# p4 = Point(5,5)
+#
+# print(intersect(p1,p2,p3,p4))
