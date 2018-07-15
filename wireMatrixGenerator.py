@@ -1,5 +1,6 @@
 from sympy import Point, Line, Polygon, pi
 import itertools
+import numpy as np
 
 def ccw(A, B, C):
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
@@ -29,7 +30,7 @@ class wire:
         lr = intersect(self.leftBound.points[0], self.leftBound.points[1], wire.rightBound.points[0], wire.rightBound.points[1])
         rl = intersect(self.rightBound.points[0], self.rightBound.points[1], wire.leftBound.points[0], wire.leftBound.points[1])
         rr = intersect(self.rightBound.points[0], self.rightBound.points[1], wire.rightBound.points[0], wire.rightBound.points[1])
-        print(ll,lr,rl,rr)
+        # print(ll,lr,rl,rr)
         return ll and lr and rl and rr
 
     def __repr__(self):
@@ -92,7 +93,6 @@ cells = []
 potentialCells = list(itertools.product(*grid))
 for potentialCell in potentialCells:
     goodCell = True
-    print(potentialCell)
     potentialIntersections = list(itertools.combinations(potentialCell,2))
     for intersection in potentialIntersections:
         if not intersection[0].doesIntersect(intersection[1]):
@@ -104,91 +104,11 @@ for potentialCell in potentialCells:
             cell.append(wire.trueWireNo)
         cells.append(cell)
 
-print(len(cells))
+print(cells)
 
+matrix = np.zeros((grid[-1][-1].trueWireNo+1,len(cells)), dtype = int)
+for cellNo, cell in enumerate(cells):
+    for wire in cell:
+        matrix[wire][cellNo] = 1
 
-
-
-
-
-
-
-
-
-
-
-
-
-# gridNumbering = []
-#
-# for i in range(len(grid)):
-#     gridNumbering.append([])
-#     for k in range(len(grid[i])):
-#         gridNumbering[i].append(str(i)+""+str(k))
-#
-#
-# cells = []
-# for potentialCell in potentialCells:
-#     potentialIntersections = list(itertools.combinations(potentialCell,2))
-#     cell = True
-#     for intersection in potentialIntersections:
-#         # if grid[int(intersection[0][1:])][int(intersection[0][:1])].doesIntersect(grid[int(intersection[1][1:])][int(intersection[1][:1])]):
-#         #     print ("true")
-#         if not grid[int(intersection[0][1:])][int(intersection[0][:1])].doesIntersect(grid[int(intersection[1][1:])][int(intersection[1][:1])]):
-#             cell = False
-#             continue
-#     if cell:
-#         cells.append(potentialCell)
-#
-# print (len(cells))
-# a = [[0,1,2],[0,1,2],[0,1,2]]
-# a = list(itertools.product(*a))
-# print(a)
-# print(list(itertools.combinations(a[5],2)))
-
-# wire1 = wire(Point(-1, -6), Point(-1, 6), Point(1, 6), Point(1, -6))
-# wire2 = wire(Point(-5, -1), Point(5, -1), Point(-5, 1), Point(5, 1))
-# wire3 = wire(Point(-5, 5), Point(5, 5), Point(-5, 3), Point(5, 3))
-#
-# print(wire1.doesIntersect(wire2))
-# # print(wire1.leftBound)
-# # (wire1.doesIntersect(wire2))
-# print(wire1.doesIntersect(wire3))
-# print(wire2.doesIntersect(wire3))
-#
-
-# print(wire1)
-
-# p1 = Point(-5,0)
-# p2 = Point(5,0)
-# p3 = p1.rotate(pi/3).translate(0.2333,0.233)
-# p4 = p2.rotate(pi/3).translate(0.2333,0.233)
-
-
-#
-# l1 = Line(Point(-5,0), Point(5,0))
-# l3 = l1.rotate(pi/3).translate(0.2333,0.233)
-# l2 = Line(Point(0,-5), Point(0,5))
-
-# print(l1.points)
-
-
-# for i in range(100):
-#     l1.intersection(l2)
-#     l1.intersection(l3)
-# intersect(l1.points[0],l1.points[1],l2.points[0],l2.points[1])
-#
-# a = [[1,2],[3,4]]
-#
-# print(list(product(*a)))
-#
-# rec1 = Polygon(Point(-1,-5),Point(-1,5),Point(1,5),Point(1,-5))
-# rec2 = rec1.rotate(pi/3)
-
-
-# rec2 = Polygon(Point(-5,-1),Point(-5,1),Point(5,1),Point(5,-1))
-# rec3 = Polygon(Point(-5,3),Point(-5,5),Point(5,5),Point(5,3))
-#
-# print(rec1.intersection(rec2))
-# print(rec2.intersection(rec3))
-# print(rec1.intersection(rec3))
+print(matrix)
