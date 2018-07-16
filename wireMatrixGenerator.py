@@ -79,11 +79,7 @@ def make2PlaneGrid():
 
     return grid
 
-
-# grid = make3PlaneGrid()
-grid = make2PlaneGrid()
-
-def makeMatrixFromGeometry(grid):
+def makeCells(grid):
     cells = []
 
     potentialCells = list(itertools.product(*grid))
@@ -100,16 +96,23 @@ def makeMatrixFromGeometry(grid):
                 cell.append(wire.trueWireNo)
             cells.append(cell)
 
+    return cells
     # print(cells)
 
-    matrix = np.zeros((grid[-1][-1].trueWireNo+1,len(cells)), dtype = int)
+def makeMatrix(noOfWires, cells):
+    matrix = np.zeros((noOfWires,len(cells)), dtype = int)
     for cellNo, cell in enumerate(cells):
         for wire in cell:
             matrix[wire][cellNo] = 1
 
     return matrix
 
-makeMatrixFromGeometry(grid)
+# grid = make3PlaneGrid()
+grid = make2PlaneGrid()
+noOfWires = grid[-1][-1].trueWireNo+1
+cells = makeCells(grid)
+matrix = makeMatrix(noOfWires,cells)
+print(matrix)
 #
 # p1 = Point(-5,0)
 # p2 = Point(5,0)
