@@ -13,7 +13,7 @@ Double_t cal_wire(Double_t x, Double_t y, Double_t i, Double_t n){
   // x, y position
   // i is the ith plane
   // n is the total number of plane
-  
+
   Double_t dis = cos( i * 2 * 3.1415926/2./n) * y + sin(i*2*3.1415926/2./n) * x;
   Int_t wire = round(dis/0.003 + 250);
   return wire;
@@ -31,10 +31,8 @@ Double_t cal_yuv(Double_t u, Double_t v, Int_t n){
 }
 
 void cal_hits(){
-// int
-// main (Int_t argc, char *argv[]){
   const Int_t nplane = 3;
-  
+
   TFile *file = new TFile(Form("plane_%d.root",nplane),"RECREATE");
   TTree *T = new TTree("T","T");
   Int_t nhit;
@@ -43,7 +41,7 @@ void cal_hits(){
   T->Branch("nphit",&nphit,"nphit/I");
   Int_t nwires;
   T->Branch("nwires",&nwires,"nwires/I");
-  
+
   for (Int_t temp = 0; temp!=100000;temp++){
     if (temp%10000==0) std::cout << temp << std::endl;
   // initialized the fired wires
@@ -70,7 +68,7 @@ void cal_hits(){
 
       //      cout << cal_xuv(u,v,nplane) << " " << cal_yuv(u,v,nplane) << endl;
   }
-      
+
   //form potential hits from the first two planes
   for (size_t j=0;j!=fired_wires.at(0).size();j++){
     for (size_t k=0;k!=fired_wires.at(1).size();k++){
@@ -78,8 +76,8 @@ void cal_hits(){
       potential_hits.push_back(std::make_pair(fired_wires.at(0).at(j),fired_wires.at(1).at(k)));
     }
   }
-  
-  // check the rest of the planes 
+
+  // check the rest of the planes
   for (auto it = potential_hits.begin();it!=potential_hits.end();it++){
     //cout << x << " " << y << endl;
     int flag = 0;
@@ -93,7 +91,7 @@ void cal_hits(){
 	  Double_t y = cal_yuv(up,vp,nplane);
 	  int wire = cal_wire(x,y,i,nplane);
 	  //cout << "xin2 " << x << " " << y << " " << wire << endl;
-	  if (find(fired_wires.at(i).begin(),fired_wires.at(i).end(),wire) != 
+	  if (find(fired_wires.at(i).begin(),fired_wires.at(i).end(),wire) !=
 	      fired_wires.at(i).end()){
 	    flag1 = 1; // found
 	    break;
@@ -101,20 +99,20 @@ void cal_hits(){
 	}
 	if (flag1==1) break;
       }
-     
-      //cout << "xin " << flag1 << endl; 
+
+      //cout << "xin " << flag1 << endl;
       if (flag1 == 0) {
 	flag = 1;
 	break;
       }
     }
-    
+
     if (flag == 1)
       bad_hits.push_back(std::make_pair(1,1));
   }
   //std::cout << potential_hits.size() << " " << bad_hits.size() <<std::endl;
   nphit = potential_hits.size()-bad_hits.size();
-  
+
   nwires = 0;
   for (Int_t i=0; i!= nplane ;i++){
     nwires += fired_wires.at(i).size();
@@ -124,7 +122,7 @@ void cal_hits(){
 }
   file->Write();
   file->Close();
-  
-  
-  
+
+
+
 }
