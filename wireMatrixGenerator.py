@@ -34,8 +34,8 @@ class wire:
         return ll and lr and rl and rr
 
     def __repr__(self):
-        return str([self.planeNo,self.wireNo,self.trueWireNo])
-        # return str([self.leftBound, self.rightBound])
+        # return str([self.planeNo,self.wireNo,self.trueWireNo])
+        return str([self.leftBound, self.rightBound])
 
 def make3PlaneGrid():
     grid = [[],[],[]]
@@ -52,7 +52,7 @@ def make3PlaneGrid():
         wire2 = wire(Point(leftMost+wireNo*wirePitch,-wireLength),Point(leftMost+wireNo*wirePitch,wireLength),Point(leftMost+(wireNo +1)*wirePitch,-wireLength),Point(leftMost+(wireNo +1)*wirePitch,wireLength),1,wireNo,wireNo+1*wiresPerPlane)
         wire2.rotate(pi/3)
         wire3 = wire(Point(leftMost+wireNo*wirePitch,-wireLength),Point(leftMost+wireNo*wirePitch,wireLength),Point(leftMost+(wireNo +1)*wirePitch,-wireLength),Point(leftMost+(wireNo +1)*wirePitch,wireLength),2,wireNo,wireNo+2*wiresPerPlane)
-        wire2.rotate(2*pi/3)
+        wire3.rotate(2*pi/3)
 
         grid[0].append(wire1)
         grid[1].append(wire2)
@@ -107,12 +107,16 @@ def makeMatrix(noOfWires, cells):
 
     return matrix
 
-# grid = make3PlaneGrid()
-grid = make2PlaneGrid()
-noOfWires = grid[-1][-1].trueWireNo+1
-cells = makeCells(grid)
-matrix = makeMatrix(noOfWires,cells)
-print(matrix)
+grid = make3PlaneGrid()
+print(grid[0][0])
+print(grid[1][0])
+print(grid[2][0])
+
+# grid = make2PlaneGrid()
+# noOfWires = grid[-1][-1].trueWireNo+1
+# cells = makeCells(grid)
+# matrix = makeMatrix(noOfWires,cells)
+# print(matrix)
 #
 # p1 = Point(-5,0)
 # p2 = Point(5,0)
