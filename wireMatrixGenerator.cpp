@@ -18,6 +18,15 @@ CGAL_EXPORT extern const CGAL::Translation TRANSLATION;
 
 #include "print_utils.h"
 
+bool doesIntersect(Polygon_2 &polygon1, Polygon_2 &polygon2){
+        return (CGAL::do_intersect(polygon1, polygon2));
+}
+
+bool doesIntersect(Polygon_with_holes_2 &polygon1, Polygon_2 &polygon2){
+        return (CGAL::do_intersect(polygon1, polygon2));
+}
+
+
 Polygon_with_holes_2 intersection(Polygon_2 &polygon1, Polygon_2 &polygon2)
 {
         Pwh_list_2 result;
@@ -46,7 +55,7 @@ Polygon_with_holes_2 intersection(Polygon_with_holes_2 &polygon1, Polygon_2 &pol
         return outputPolygon;
 }
 
-std::vector<std::vector<int> > cart_product (const std::vector<std::vector<int> >& v) {
+std::vector<std::vector<int> > cart_product (const std::vector<std::vector<int> > &v) {
         std::vector<std::vector<int> > s = {{}};
         for (auto& u : v) {
                 std::vector<std::vector<int> > r;
@@ -65,7 +74,7 @@ std::vector< std::vector<Polygon_2> > generate3PlaneGeometry(int wirePitch, int 
         std::vector< std::vector<Polygon_2> > grid(noOfPlanes,std::vector<Polygon_2> (wiresPerPlane));
 
         //The left coordinate of the left most wire
-        double leftMost = -(wirePitch/2)*wiresPerPlane;
+        double leftMost = -(wirePitch/2.0)*wiresPerPlane;
 
         //transformations for the first 3 planes
         double angle1 = M_PI/3;
@@ -98,6 +107,104 @@ std::vector< std::vector<Polygon_2> > generate3PlaneGeometry(int wirePitch, int 
         return grid;
 }
 
+std::vector< std::vector<Polygon_2> > generate2PlaneGeometry(int wirePitch, int wireLength, int wiresPerPlane, int noOfPlanes){
+        std::vector< std::vector<Polygon_2> > grid(noOfPlanes,std::vector<Polygon_2> (wiresPerPlane));
+
+        //The left coordinate of the left most wire
+        double leftMost = -(wirePitch/2.0)*wiresPerPlane;
+
+        //transformations for the first 3 planes
+        double angle1 = M_PI/3;
+
+        Transformation translate0(TRANSLATION, Vector(0,0));
+        Transformation rotate1(cos(angle1), -sin(angle1), sin(angle1), cos(angle1), 1);
+
+        for(int wireNo = 0; wireNo < wiresPerPlane; wireNo++) {
+                // Plane 0
+                grid[0][wireNo].push_back(translate0(Point_2(leftMost + (wireNo + 1) * wirePitch, -wireLength)));
+                grid[0][wireNo].push_back(translate0(Point_2(leftMost + (wireNo + 1) * wirePitch, wireLength)));
+                grid[0][wireNo].push_back(translate0(Point_2(leftMost + wireNo * wirePitch, wireLength)));
+                grid[0][wireNo].push_back(translate0(Point_2(leftMost + wireNo * wirePitch, -wireLength)));
+
+                // Plane 1
+                grid[1][wireNo].push_back(rotate1(Point_2(leftMost + (wireNo + 1) * wirePitch, -wireLength)));
+                grid[1][wireNo].push_back(rotate1(Point_2(leftMost + (wireNo + 1) * wirePitch, wireLength)));
+                grid[1][wireNo].push_back(rotate1(Point_2(leftMost + wireNo * wirePitch, wireLength)));
+                grid[1][wireNo].push_back(rotate1(Point_2(leftMost + wireNo * wirePitch, -wireLength)));
+        }
+
+        return grid;
+}
+
+
+int wireNoToTrueWireNo(int wiresPerPlane,int planeNo, int wireNo){
+        return wiresPerPlane*planeNo + wireNo;
+}
+
+std::pair<int,int> trueWireNotoWireNo(int wiresPerPlane, int trueWireNo){
+        int wireNo = trueWireNo % wiresPerPlane;
+        int planeNo = trueWireNo/wiresPerPlane;
+
+        return std::make_pair(planeNo,wireNo);
+}
+
+std::vector< std::vector<int> > generateCells(std::vector< std::vector<Polygon_2> > &geometry){
+        int wiresPerPlane = geometry[0].size();
+        int noOfPlanes = geometry.size();
+
+        std::vector< std::vector<int> > gridI(noOfPlanes,std::vector<int> (wiresPerPlane));
+
+
+        std::vector< std::vector<int> > cells;
+        std::vector< std::vector<int> > potentialCells;
+
+        //generation of grid using true wireNumber
+        for(int planeNo = 0; planeNo < noOfPlanes; planeNo++) {
+                for (int wireNo = 0; wireNo < wiresPerPlane; wireNo++) {
+                        gridI[planeNo][wireNo] = wireNoToTrueWireNo(wiresPerPlane,planeNo,wireNo);
+                }
+        }
+
+        potentialCells = cart_product(gridI);
+        bool goodCell;
+
+        for(int potentialCellNo = 0; potentialCellNo < potentialCells.size(); potentialCellNo++) {
+                goodCell = true;
+                Polygon_with_holes_2 cellIntersection;
+                if (doesIntersect(geometry[std::get<0>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][0]))][std::get<1>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][0]))],geometry[std::get<0>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][1]))][std::get<1>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][1]))])) {
+                        cellIntersection = intersection(geometry[std::get<0>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][0]))][std::get<1>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][0]))],geometry[std::get<0>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][1]))][std::get<1>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][1]))]);
+                        if(potentialCells[potentialCellNo].size()>2) {
+                                for(int trueWireID = 0; trueWireID < potentialCells[potentialCellNo].size(); trueWireID++) {
+                                        if(doesIntersect(cellIntersection,geometry[std::get<0>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][trueWireID]))][std::get<1>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][trueWireID]))])) {
+                                                cellIntersection = intersection(cellIntersection,geometry[std::get<0>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][trueWireID]))][std::get<1>(trueWireNotoWireNo(wiresPerPlane,potentialCells[potentialCellNo][trueWireID]))]);
+                                        }
+                                        else{
+                                                goodCell = false;
+                                        }
+                                }
+                        }
+
+
+                }
+                else{
+                        goodCell = false;
+                }
+                if(goodCell) {
+                        print_polygon_with_holes(cellIntersection);
+                        cells.push_back(potentialCells[potentialCellNo]);
+                }
+
+        }
+
+
+
+
+        return cells;
+}
+
+
+
+
 
 int main ()
 {
@@ -108,68 +215,17 @@ int main ()
         int noOfPlanes = 3;
 
         std::vector< std::vector<Polygon_2> > grid = generate3PlaneGeometry(wirePitch,wireLength,wiresPerPlane,noOfPlanes);
-        std::cout << grid.size()<< " | " << grid[0].size() << std::endl;
-        print_polygon(grid[0][0]);
-        print_polygon(grid[1][0]);
-        print_polygon(grid[2][0]);
+        // std::vector< std::vector<Polygon_2> > grid = generate2PlaneGeometry(wirePitch,wireLength,wiresPerPlane,noOfPlanes);
+        std::vector< std::vector<int> > cells = generateCells(grid);
 
+        std::cout << cells.size() << std::endl;
 
-        // std::vector<std::vector<int> > test{{1}, {4,5,6}, {8,9}};
-        // std::vector<std::vector<int> > res = cart_product(test);
-        //
-        // for(size_t i = 0; i < res.size(); i++) {
-        //         for (size_t j = 0; j < res[i].size(); j++) {
-        //                 std::cout << res[i][j] << "\t";
-        //         }
-        //         std::cout << std::endl;
-        // }
-
-
-
-
-
-        //
-        //
-        //
-        // double angle = M_PI/3;
-        // Transformation rotate(cos(angle), -sin(angle), sin(angle), cos(angle), 1);
-        // Transformation translate(TRANSLATION, Vector(-2, 0));
-        //
-        // Polygon_2 w0;
-        // w0.push_back (Point_2 (1,-10));
-        // w0.push_back (Point_2 (1,10));
-        // w0.push_back (Point_2 (-1,10));
-        // w0.push_back (Point_2 (-1,-10));
-        // std::cout << "w0 = "; print_polygon (w0);
-        //
-        // Polygon_2 v2;
-        // v2.push_back (translate(Point_2 (10,-1)));
-        // v2.push_back (translate(Point_2 (10,1)));
-        // v2.push_back (translate(Point_2 (-10,1)));
-        // v2.push_back (translate(Point_2 (-10,-1)));
-        // std::cout << "v2 = "; print_polygon (v2);
-        //
-        // Polygon_2 u0;
-        // u0.push_back (rotate(Point_2 (1,-10)));
-        // u0.push_back (rotate(Point_2 (1,10)));
-        // u0.push_back (rotate(Point_2 (-1,10)));
-        // u0.push_back (rotate(Point_2 (-1,-10)));
-        // std::cout << "u0 = "; print_polygon (u0);
-        //
-        // Polygon_with_holes_2 intersect = intersection(w0, v2);
-        // print_polygon_with_holes(intersection(intersect, u0));
-
-
-
-
-
-
-
+        for(size_t i = 0; i < cells.size(); i++) {
+                for (size_t j = 0; j < cells[i].size(); j++) {
+                        std::cout << cells[i][j] << "\t";
+                }
+                std::cout << std::endl;
+        }
 
         return 0;
-        // if ((CGAL::do_intersect(w0, v2)))
-        //         std::cout << "The two polygons intersect in their interior." << std::endl;
-        // else
-        //         std::cout << "The two polygons do not intersect." << std::endl;
-        // return 0;
 }
