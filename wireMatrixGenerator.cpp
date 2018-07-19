@@ -6,6 +6,7 @@
 #include <CGAL/number_utils.h>
 #include <list>
 #include <cmath>
+#include <iostream>
 #include <algorithm>
 
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
@@ -232,12 +233,22 @@ std::vector< std::vector<int> > generateCells(std::vector< std::vector<Polygon_2
         return cells;
 }
 
-int main ()
+
+// ##     ##    ###    #### ##    ##
+// ###   ###   ## ##    ##  ###   ##
+// #### ####  ##   ##   ##  ####  ##
+// ## ### ## ##     ##  ##  ## ## ##
+// ##     ## #########  ##  ##  ####
+// ##     ## ##     ##  ##  ##   ###
+// ##     ## ##     ## #### ##    ##
+
+
+int main (int argc, const char * argv[])
 {
 
         int wirePitch = 2;
         int wireLength = 1000;
-        int wiresPerPlane = 3;
+        int wiresPerPlane = ((argc>1) ? strtol(argv[1],NULL,10) : 3);
         int noOfPlanes = 3;
 
         std::vector< std::vector<Polygon_2> > grid = generate3PlaneGeometry(wirePitch,wireLength,wiresPerPlane,noOfPlanes);
@@ -247,12 +258,11 @@ int main ()
 
         std::cout << cells.size() << std::endl;
 
-        for(size_t i = 0; i < cells.size(); i++) {
-                for (size_t j = 0; j < cells[i].size(); j++) {
-                        std::cout << cells[i][j] << "\t";
-                }
-                std::cout << std::endl;
-        }
+        // for(size_t i = 0; i < cells.size(); i++) {
+        //         for (size_t j = 0; j < cells[i].size(); j++) {
+        //                 std::cout << cells[i][j] << "\t";
+        //         }
+        //         std::cout << std::endl;
+        // }
 
-        return 0;
 }
